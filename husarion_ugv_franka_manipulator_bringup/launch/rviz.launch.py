@@ -117,49 +117,10 @@ def generate_launch_description():
     )
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
-    # Trajectory Execution Functionality
-    moveit_simple_controllers_yaml = load_yaml(
-        'franka_fr3_moveit_config', 'config/fr3_controllers.yaml'
-    )
-    moveit_controllers = {
-        'moveit_simple_controller_manager': moveit_simple_controllers_yaml,
-        'moveit_controller_manager': 'moveit_simple_controller_manager'
-                                     '/MoveItSimpleControllerManager',
-    }
-
-    trajectory_execution = {
-        'moveit_manage_controllers': True,
-        'trajectory_execution.allowed_execution_duration_scaling': 1.2,
-        'trajectory_execution.allowed_goal_duration_margin': 0.5,
-        'trajectory_execution.allowed_start_tolerance': 0.01,
-    }
-
-    planning_scene_monitor_parameters = {
-        'publish_planning_scene': True,
-        'publish_geometry_updates': True,
-        'publish_state_updates': True,
-        'publish_transforms_updates': True,
-    }
-
-    # Start the actual move_group node/action server
-    run_move_group_node = Node(
-        package='moveit_ros_move_group',
-        executable='move_group',
-        output='screen',
-        parameters=[
-            robot_description,
-            robot_description_semantic,
-            kinematics_yaml,
-            ompl_planning_pipeline_config,
-            trajectory_execution,
-            moveit_controllers,
-            planning_scene_monitor_parameters,
-        ],
-    )
 
     # RViz
     rviz_base = os.path.join(get_package_share_directory(
-        'franka_fr3_moveit_config'), 'rviz')
+        'husarion_ugv_franka_manipulator_bringup'), 'rviz')
     rviz_full_config = os.path.join(rviz_base, 'moveit.rviz')
 
     rviz_node = Node(
@@ -176,32 +137,6 @@ def generate_launch_description():
         ],
     )
 
-    # Publish TF
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='both',
-        parameters=[robot_description],
-    )
-
-    ros2_controllers_path = os.path.join(
-        get_package_share_directory('franka_fr3_moveit_config'),
-        'config',
-        'fr3_ros_controllers.yaml',
-    )
-    ros2_control_node = Node(
-        package='controller_manager',
-        executable='ros2_control_node',
-        parameters=[robot_description, ros2_controllers_path],
-        remappings=[('joint_states', 'franka/joint_states')],
-        output={
-            'stdout': 'screen',
-            'stderr': 'screen',
-        },
-        on_exit=Shutdown(),
-    )
-
     # Load controllers
     load_controllers = []
     for controller in ['fr3_arm_controller', 'joint_state_broadcaster']:
@@ -213,22 +148,6 @@ def generate_launch_description():
                 output='screen',
             )
         ]
-
-    joint_state_publisher = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        parameters=[
-            {'source_list': ['franka/joint_states', 'fr3_gripper/joint_states'], 'rate': 30}],
-    )
-
-    franka_robot_state_broadcaster = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['franka_robot_state_broadcaster'],
-        output='screen',
-        condition=UnlessCondition(use_fake_hardware),
-    )
 
     robot_arg = DeclareLaunchArgument(
         robot_ip_parameter_name,
@@ -243,24 +162,13 @@ def generate_launch_description():
         default_value='false',
         description="Fake sensor commands. Only valid when '{}' is true".format(
             use_fake_hardware_parameter_name))
-    gripper_launch_file = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([PathJoinSubstitution(
-            [FindPackageShare('franka_gripper'), 'launch', 'gripper.launch.py'])]),
-        launch_arguments={'robot_ip': robot_ip,
-                          use_fake_hardware_parameter_name: use_fake_hardware}.items(),
-    )
+
     return LaunchDescription(
         [robot_arg,
          use_fake_hardware_arg,
          fake_sensor_commands_arg,
          db_arg,
          rviz_node,
-        #  robot_state_publisher,
-        #  run_move_group_node,
-        #  ros2_control_node,
-        #  joint_state_publisher,
-        #  franka_robot_state_broadcaster,
-        #  gripper_launch_file
          ]
         + load_controllers
     )
