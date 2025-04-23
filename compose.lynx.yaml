@@ -43,5 +43,5 @@ services:
         soft: -1
         hard: -1
     command: >
-      ros2 launch husarion_ugv_franka_manipulator_bringup ${ROBOT_MODEL}.launch.py
+      ros2 launch husarion_ugv_franka_manipulator_bringup lynx.launch.py
         robot_ip:=10.15.20.127

@@ -1,0 +1,47 @@
+x-common-config: &common-config
+  network_mode: host
+  ipc: host
+  restart: always
+  env_file:
+    - .env # env configuration including namespace, domain id, DDS, etc.
+
+services:
+  husarion-ugv-franka-manipulator :
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - USER_UID=${USER_UID}
+        - USER_GID=${USER_GID}
+    container_name: husarion-ugv-franka-manipulator
+    <<: *common-config
+    privileged: true
+    security_opt:
+      - apparmor:unconfined # allow for dbus PowerOff
+    devices:
+      - /dev/bus/usb
+      - /dev/gpiochip0
+      - /dev/spiled-channel1
+      - /dev/spiled-channel2
+    device_cgroup_rules:
+      - 'c 189:* rmw' # USB devices
+      - 'c 254:0 rmw' # gpiochip0
+      - 'c 153:* rmw' # spiled-channel1, spiled-channel2
+    # volumes:
+    #   - /run/husarion/robot_config.env:/run/husarion/robot_config.env
+    #   - /run/husarion/robot_config.yaml:/run/husarion/robot_config.yaml
+    #   - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+    #   - /sys/bus/iio/devices:/sys/bus/iio/devices:ro # Read-only access to IIO devices
+    #   - ~/.ssh/id_rsa:/root/.ssh/id_rsa
+    #   - /home/husarion/config:/config
+    # Realtime hardware (https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html#determinism)
+    ulimits:
+      rtprio:
+        soft: 99
+        hard: 99
+      memlock:
+        soft: -1
+        hard: -1
+    command: >
+      ros2 launch husarion_ugv_franka_manipulator_bringup panther.launch.py
+        robot_ip:=10.15.20.127
