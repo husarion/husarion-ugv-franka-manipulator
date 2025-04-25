@@ -44,4 +44,4 @@ services:
         hard: -1
     command: >
       ros2 launch husarion_ugv_franka_manipulator_bringup panther.launch.py
-        robot_ip:=10.15.20.127
+        robot_ip:=10.15.20.4
