@@ -25,7 +25,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     Shutdown
 )
-from launch.conditions import UnlessCondition
+from launch.conditions import UnlessCondition, LaunchConfigurationEquals
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command,
@@ -52,10 +52,12 @@ def load_yaml(package_name, file_path):
 
 
 def generate_launch_description():
+    robot_model_parameter_name = 'robot_model'
     robot_ip_parameter_name = 'robot_ip'
     use_fake_hardware_parameter_name = 'use_fake_hardware'
     fake_sensor_commands_parameter_name = 'fake_sensor_commands'
 
+    robot_model = LaunchConfiguration(robot_model_parameter_name)
     robot_ip = LaunchConfiguration(robot_ip_parameter_name)
     use_fake_hardware = LaunchConfiguration(use_fake_hardware_parameter_name)
     fake_sensor_commands = LaunchConfiguration(
@@ -156,25 +158,7 @@ def generate_launch_description():
             planning_scene_monitor_parameters,
         ],
     )
-
-    # RViz
-    rviz_base = os.path.join(get_package_share_directory(
-        'franka_fr3_moveit_config'), 'rviz')
-    rviz_full_config = os.path.join(rviz_base, 'moveit.rviz')
-
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='log',
-        arguments=['-d', rviz_full_config],
-        parameters=[
-            robot_description,
-            robot_description_semantic,
-            ompl_planning_pipeline_config,
-            kinematics_yaml,
-        ],
-    )
+ 
 
     # Publish TF
     robot_state_publisher = Node(
@@ -230,6 +214,11 @@ def generate_launch_description():
         condition=UnlessCondition(use_fake_hardware),
     )
 
+    robot_model_arg = DeclareLaunchArgument(
+        robot_model_parameter_name,
+        description='Robot model to use (lynx or panther).',
+        choices=["panther", "lynx"])
+
     robot_arg = DeclareLaunchArgument(
         robot_ip_parameter_name,
         description='Hostname or IP address of the robot.')
@@ -251,20 +240,31 @@ def generate_launch_description():
     )
 
 
-    static_tf = Node(
+    static_tf_lynx = Node(
                 package="tf2_ros",
                 executable="static_transform_publisher",
                 name="static_tf2_broadcaster",
-                arguments=["0.145", "0.14", "0.20", "0.0", "0.0", "0.0", "panther/cover_link", "base"],
+                arguments=["0.145", "0.0", "0.22", "0.0", "0.0", "0.0", "lynx/mount_link", "base"],
+                condition=LaunchConfigurationEquals(robot_model_parameter_name, 'lynx')
             )
+
+    static_tf_panther = Node(
+                package="tf2_ros",
+                executable="static_transform_publisher",
+                name="static_tf2_broadcaster",
+                arguments=["0.145", "0.14", "0.22", "0.0", "0.0", "0.0", "panther/mount_link", "base"],
+                condition=LaunchConfigurationEquals(robot_model_parameter_name, 'panther')
+            )
+
 
     return LaunchDescription(
         [robot_arg,
+         robot_model_arg,
          use_fake_hardware_arg,
          fake_sensor_commands_arg,
          db_arg,
-        #  rviz_node,
-         static_tf,
+         static_tf_lynx,
+         static_tf_panther,
          robot_state_publisher,
          run_move_group_node,
          ros2_control_node,
