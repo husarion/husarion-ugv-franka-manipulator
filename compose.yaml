@@ -15,7 +15,6 @@ services:
         - USER_GID=${USER_GID}
     container_name: husarion-ugv-franka-manipulator
     <<: *common-config
-    privileged: true
     volumes:
       - ./husarion_ugv_franka_manipulator_bringup/launch:/ros2_ws/src/husarion_ugv_franka_manipulator_bringup/launch
     ulimits:
