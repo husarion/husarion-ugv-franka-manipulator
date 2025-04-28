@@ -17,7 +17,7 @@ services:
     <<: *common-config
     privileged: true
     volumes:
-      - ./husarion_ugv_franka_manipulator_bringup/launch:/ros2_ws/husarion_ugv_franka_manipulator_bringup/launch
+      - ./husarion_ugv_franka_manipulator_bringup/launch:/ros2_ws/src/husarion_ugv_franka_manipulator_bringup/launch
     ulimits:
       rtprio:
         soft: 99

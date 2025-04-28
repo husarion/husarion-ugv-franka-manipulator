@@ -16,7 +16,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>husarion_ugv_description</depend>
-  <depend>husarion_ugv_messages</depend>
+  <depend>husarion_ugv_msgs</depend>
   <depend>franka_ros2</depend>
 
   <export>

@@ -44,7 +44,11 @@ RUN apt-get update \
 
 WORKDIR /ros2_ws
 RUN git clone https://github.com/frankaemika/franka_ros2.git src/franka_ros2
-RUN git clone https://github.com/husarion/husarion_ugv_ros.git src/husarion_ugv_ros
+RUN git clone https://github.com/husarion/husarion_ugv_ros.git husarion_ugv_ros
+RUN mv husarion_ugv_ros/husarion_ugv_description src/husarion_ugv_description
+RUN mv husarion_ugv_ros/husarion_ugv_msgs src/husarion_ugv_msgs
+RUN mv husarion_ugv_ros/husarion_ugv src/husarion_ugv
+RUN rm -rf husarion_ugv_ros
 COPY ./husarion_ugv_franka_manipulator_bringup src/husarion_ugv_franka_manipulator_bringup
 
 
@@ -53,8 +57,8 @@ RUN apt-get update  && \
         ros-dev-tools && \
     # Setup workspace
     vcs import src < src/franka_ros2/franka.repos --recursive --skip-existing && \
-    find src/husarion_ugv_ros -mindepth 1 -maxdepth 1 ! -name 'husarion_ugv_description' ! -name 'husarion_ugv_msgs' -exec rm -rf {} && \
-    vcs import src < src/husarion_ugv_ros/husarion_ugv/${HUSARION_ROS_BUILD_TYPE}_deps.repos && \
+    vcs import src < src/husarion_ugv/${HUSARION_ROS_BUILD_TYPE}_deps.repos && \
+    rm -rf src/husarion_ugv && \
     # Install dependencies
     rosdep init && \
     rosdep update --rosdistro $ROS_DISTRO && \
