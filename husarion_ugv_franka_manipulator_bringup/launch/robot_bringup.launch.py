@@ -216,7 +216,8 @@ def generate_launch_description():
 
     robot_model_arg = DeclareLaunchArgument(
         robot_model_parameter_name,
-        description='Robot model to use (lynx or panther).')
+        description='Robot model to use (lynx or panther).'
+        choices=["panther", "lynx"],)
 
     robot_arg = DeclareLaunchArgument(
         robot_ip_parameter_name,
