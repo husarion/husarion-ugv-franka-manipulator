@@ -42,28 +42,18 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 
-ENV HUSARION_ROS_BUILD_TYPE=simulation
-
 WORKDIR /ros2_ws
 RUN git clone https://github.com/frankaemika/franka_ros2.git src/franka_ros2
 RUN git clone https://github.com/husarion/husarion_ugv_ros.git src/husarion_ugv_ros
 COPY ./husarion_ugv_franka_manipulator_bringup src/husarion_ugv_franka_manipulator_bringup
 
-# RUN vcs import src < src/franka.repos --recursive --skip-existing \
-#     && sudo apt-get update \
-#     && rosdep update \
-#     && rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y \
-#     && sudo apt-get clean \
-#     && sudo rm -rf /var/lib/apt/lists/* \
-#     && rm -rf /home/$USERNAME/.ros \
-#     && rm -rf src \
-#     && mkdir -p src
 
 RUN apt-get update  && \
     apt-get install -y \
         ros-dev-tools && \
     # Setup workspace
     vcs import src < src/franka_ros2/franka.repos --recursive --skip-existing && \
+    find src/husarion_ugv_ros -mindepth 1 -maxdepth 1 ! -name 'husarion_ugv_description' ! -name 'husarion_ugv_msgs' -exec rm -rf {} && \
     vcs import src < src/husarion_ugv_ros/husarion_ugv/${HUSARION_ROS_BUILD_TYPE}_deps.repos && \
     # Install dependencies
     rosdep init && \
@@ -79,10 +69,3 @@ RUN apt-get update  && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-RUN source install/setup.bash
-
-# COPY docker/utils/update_config_directory.sh /usr/local/sbin/update_config_directory
-# COPY docker/utils/setup_environment.sh /usr/local/sbin/setup_environment
-
-# Setup envs from eeprom

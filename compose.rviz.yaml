@@ -17,13 +17,9 @@ services:
     <<: *common-config
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      # - ./husarion_ugv_franka_manipulator_bringup/rviz:/ros2_ws/husarion_ugv_franka_manipulator_bringup/rviz/moveit.rviz
     environment:
-      # - ROS_DOMAIN_ID=0
       - DISPLAY
       - USER=${USER:-root}
-      # - NVIDIA_VISIBLE_DEVICES=all
-      # - NVIDIA_DRIVER_CAPABILITIES=all
     command: >
       ros2 launch husarion_ugv_franka_manipulator_bringup rviz.launch.py
-        robot_ip:=10.15.20.4
+        robot_ip:=${ROBOT_IP}
