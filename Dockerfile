@@ -43,12 +43,13 @@ RUN apt-get update \
 
 
 WORKDIR /ros2_ws
+
 RUN git clone https://github.com/frankaemika/franka_ros2.git src/franka_ros2 
 WORKDIR /ros2_ws/src/franka_ros2
 RUN git checkout 39df9c11804ec6db7bb6d80972ce0c68a6918296
 WORKDIR /ros2_ws
 RUN git clone -b humble-devel https://github.com/husarion/husarion_ugv_ros.git husarion_ugv_ros
-RUN git clone https://github.com/husarion/ros_components_description.git src/ros_components_description
+RUN git clone https://github.com/husarion/husarion_components_description.git src/husarion_components_description
 RUN mv husarion_ugv_ros/husarion_ugv_description src/husarion_ugv_description
 RUN mv husarion_ugv_ros/husarion_ugv_msgs src/husarion_ugv_msgs
 RUN mv husarion_ugv_ros/husarion_ugv src/husarion_ugv
